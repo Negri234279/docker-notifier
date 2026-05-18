@@ -195,6 +195,6 @@ jobs:
         uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
           repository: ${{ env.IMAGE }}
           readme-filepath: ./README.md
