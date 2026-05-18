@@ -1,0 +1,25 @@
+{
+    "name": "docker-notifier",
+    "version": "1.0.0",
+    "description": "Listens to Docker socket and notifies Discord/Telegram when Watchtower updates a container",
+    "type": "module",
+    "main": "dist/main.js",
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/main.js",
+        "dev": "tsx watch src/main.ts",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "dependencies": {
+        "dockerode": "^4.0.4",
+        "dotenv": "^16.4.7"
+    },
+    "devDependencies": {
+        "@types/dockerode": "^3.3.38",
+        "@types/node": "^24.0.0",
+        "typescript": "^5.7.0",
+        "prettier": "3.8.3",
+        "tsx": "^4.19.4"
+    }
+}
