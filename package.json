@@ -1,6 +1,6 @@
 {
     "name": "docker-notifier",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Listens to Docker socket and notifies Discord/Telegram when Watchtower updates a container",
     "type": "module",
     "main": "dist/main.js",

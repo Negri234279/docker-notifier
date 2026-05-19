@@ -13,3 +13,4 @@ services:
       CHOKIDAR_INTERVAL: "1000"
     env_file:
       - path: .env
+

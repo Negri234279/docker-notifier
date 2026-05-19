@@ -1,6 +1,10 @@
 import Docker from 'dockerode'
 
-import type { ContainerStartEvent, ContainerWatcher } from '../../domain/ports/ContainerWatcher.js'
+import type {
+    ContainerSnapshot,
+    ContainerStartEvent,
+    ContainerWatcher,
+} from '../../domain/ports/ContainerWatcher.js'
 import { logger } from '../logger.js'
 
 interface RawDockerEvent {
@@ -18,13 +22,15 @@ interface RawDockerEvent {
 export class DockerodeWatcher implements ContainerWatcher {
     constructor(private readonly docker: Docker) {}
 
-    async getRunningContainers(): Promise<Map<string, string>> {
+    async getRunningContainers(): Promise<Map<string, ContainerSnapshot>> {
         const containers = await this.docker.listContainers()
-        const map = new Map<string, string>()
+        const map = new Map<string, ContainerSnapshot>()
 
         for (const c of containers) {
             const name = (c.Names[0] ?? c.Id).replace(/^\//, '')
-            map.set(name, c.ImageID)
+            const snapshot = await this.extractSnapshot(c.ImageID)
+            
+            map.set(name, { imageId: c.ImageID, ...snapshot })
         }
 
         return map
@@ -77,12 +83,31 @@ export class DockerodeWatcher implements ContainerWatcher {
 
             const imageInfo = await this.docker.getImage(image).inspect()
             const imageId = imageInfo.Id
+            const labels = imageInfo.Config.Labels ?? {}
+            const version = labels['org.opencontainers.image.version']
+            const revision = labels['org.opencontainers.image.revision']
+            const createdAt = labels['org.opencontainers.image.created']
 
             logger.debug(`buildEvent ok: name=${name} imageId=${imageId.slice(0, 19)}`)
 
-            return { id: raw.Actor.ID, name, image, imageId }
+            return { id: raw.Actor.ID, name, image, imageId, version, revision, createdAt }
         } catch {
             return null
+        }
+    }
+
+    private async extractSnapshot(imageRef: string): Promise<Omit<ContainerSnapshot, 'imageId'>> {
+        try {
+            const info = await this.docker.getImage(imageRef).inspect()
+            const labels = info.Config.Labels ?? {}
+
+            return {
+                version: labels['org.opencontainers.image.version'],
+                revision: labels['org.opencontainers.image.revision'],
+                createdAt: labels['org.opencontainers.image.created'],
+            }
+        } catch {
+            return {}
         }
     }
 }
